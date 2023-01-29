@@ -1,8 +1,11 @@
 package edu.neu.coe.info6205.threesum;
 
+import edu.neu.coe.info6205.util.Stopwatch;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Implementation of ThreeSum which follows the approach of dividing the solution-space into
@@ -38,10 +41,39 @@ public class ThreeSumQuadratic implements ThreeSum {
     public List<Triple> getTriples(int j) {
         List<Triple> triples = new ArrayList<>();
         // FIXME : for each candidate, test if a[i] + a[j] + a[k] = 0.
+        int i = 0;
+        int k = length - 1;
+        while (i < j && j < k) {
+            int sum = a[i] + a[j] + a[k];
+            if (sum == 0) {
+                triples.add(new Triple(a[i], a[j], a[k]));
+                i++;
+                k--;
+            } else if (sum < 0) {
+                i++;
+            } else {
+                k--;
+            }
+        }
         // END 
         return triples;
     }
 
     private final int[] a;
     private final int length;
+
+    public static void main(String[] args) {
+
+            Supplier<int[]> intsSupplier = new Source(8000, 1000).intsSupplier(10);
+            int[] ints = intsSupplier.get();
+            ThreeSum calculateTarget = new ThreeSumQuadratic(ints);
+
+            Stopwatch start = new Stopwatch();
+            Triple[] triplesQuadratic = calculateTarget.getTriples();
+            long lap = start.lap();
+            System.out.println("Lap in miliseconds is: "+lap);
+            start.close();
+
+    }
+
 }
