@@ -1,3 +1,5 @@
+
+
 package edu.neu.coe.info6205.threesum;
 
 import edu.neu.coe.info6205.util.Benchmark_Timer;
@@ -6,6 +8,7 @@ import edu.neu.coe.info6205.util.Utilities;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 import java.util.function.UnaryOperator;
 
 public class ThreeSumBenchmark {
@@ -17,9 +20,10 @@ public class ThreeSumBenchmark {
 
     public void runBenchmarks() {
         System.out.println("ThreeSumBenchmark: N=" + n);
-        benchmarkThreeSum("ThreeSumQuadratic", (xs) -> new ThreeSumQuadratic(xs).getTriples(), n, timeLoggersQuadratic);
-        benchmarkThreeSum("ThreeSumQuadrithmic", (xs) -> new ThreeSumQuadrithmic(xs).getTriples(), n, timeLoggersQuadrithmic);
         benchmarkThreeSum("ThreeSumCubic", (xs) -> new ThreeSumCubic(xs).getTriples(), n, timeLoggersCubic);
+        benchmarkThreeSum("ThreeSumQuadrithmic", (xs) -> new ThreeSumQuadrithmic(xs).getTriples(), n, timeLoggersQuadrithmic);
+         benchmarkThreeSum("ThreeSumQuadratic", (xs) -> new ThreeSumQuadratic(xs).getTriples(), n, timeLoggersQuadratic);
+        benchmarkThreeSum("ThreeSumQuadraticWithCalipers", (xs) -> new ThreeSumQuadraticWithCalipers(xs).getTriples(), n, timeLoggersQuadratic);
     }
 
     public static void main(String[] args) {
@@ -34,8 +38,30 @@ public class ThreeSumBenchmark {
 
     private void benchmarkThreeSum(final String description, final Consumer<int[]> function, int n, final TimeLogger[] timeLoggers) {
         if (description.equals("ThreeSumCubic") && n > 4000) return;
-        // FIXME
-        // END 
+
+        long start = System.nanoTime();
+        function.accept(supplier.get());
+        long now = System.nanoTime();
+        start = (now - start)/1000000;
+        double timeTaken = (double)start;
+
+        if(description.equals("ThreeSumQuadrithmic"))
+        {
+            System.out.println("Raw Time for "+ description + "is : "+timeTaken);
+            System.out.println("Normalized Time for "+ description + " is : " + (timeTaken/n/n/Utilities.lg(n)*1e6));
+        }
+
+        else if(description.equals("ThreeSumCubic"))
+        {
+            System.out.println("Raw Time for "+ description+ " is : "+timeTaken);
+            System.out.println("Normalized Time for "+ description + "is : " + (timeTaken/n/n/n*1e6));
+        }
+        else
+        {
+            System.out.println("Raw Time for "+ description + "is : "+timeTaken);
+            System.out.println("Normalized Time for "+ description + " is : " + (timeTaken/n/n*1e6));
+        }
+        // END
     }
 
     private final static TimeLogger[] timeLoggersCubic = {
