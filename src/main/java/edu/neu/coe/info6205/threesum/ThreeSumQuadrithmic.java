@@ -1,9 +1,12 @@
 package edu.neu.coe.info6205.threesum;
 
+import edu.neu.coe.info6205.util.Stopwatch;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Implementation of ThreeSum which follows the simple optimization of
@@ -43,4 +46,15 @@ class ThreeSumQuadrithmic implements ThreeSum {
 
     private final int[] a;
     private final int length;
+    public static void main(String[] args) {
+        Supplier<int[]> intsSupplier = new Source(8000, 1000).intsSupplier(10);
+        int[] ints = intsSupplier.get();
+        ThreeSum calculateTarget = new ThreeSumQuadrithmic(ints);
+
+        Stopwatch start = new Stopwatch();
+        Triple[] triplesQuadratic = calculateTarget.getTriples();
+        long lap = start.lap();
+        System.out.println("Lap in miliseconds is: "+lap);
+        start.close();
+    }
 }
