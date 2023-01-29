@@ -1,9 +1,12 @@
 package edu.neu.coe.info6205.threesum;
 
+import edu.neu.coe.info6205.util.Stopwatch;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Implementation of ThreeSum which follows the approach of dividing the solution-space into
@@ -37,6 +40,8 @@ public class ThreeSumQuadraticWithCalipers implements ThreeSum {
         return triples.stream().distinct().toArray(Triple[]::new);
     }
 
+
+
     /**
      * Get a set of candidate Triples such that the first index is the given value i.
      * Any candidate triple is added to the result if it yields zero when passed into function.
@@ -49,10 +54,35 @@ public class ThreeSumQuadraticWithCalipers implements ThreeSum {
     public static List<Triple> calipers(int[] a, int i, Function<Triple, Integer> function) {
         List<Triple> triples = new ArrayList<>();
         // FIXME : use function to qualify triples and to navigate otherwise.
+        int j = i+1;
+        int k = a.length-1;
+        while(j<k){
+            if(a[i] + a[j] + a[k] == 0){
+                triples.add(new Triple(a[i], a[j], a[k]));
+                j++;
+                k--;
+            } else if(a[i] + a[j] + a[k] > 0){
+                k--;
+            } else {
+                j++;
+            }
+        }
         // END 
         return triples;
     }
 
     private final int[] a;
     private final int length;
+    public static void main(String[] args) {
+        Supplier<int[]> intsSupplier = new Source(16000, 1000).intsSupplier(10);
+        int[] ints = intsSupplier.get();
+        ThreeSum calculateTarget = new ThreeSumQuadraticWithCalipers(ints);
+
+        Stopwatch start = new Stopwatch();
+        Triple[] triplesQuadratic = calculateTarget.getTriples();
+        long lap = start.lap();
+        System.out.println("Lap in miliseconds is: "+lap);
+        start.close();
+    }
+
 }
