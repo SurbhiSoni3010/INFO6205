@@ -1,9 +1,12 @@
 package edu.neu.coe.info6205.union_find;
 
+import java.util.Random;
+
 /**
  * This interface models the concept of Union-Find, a special case of the Connections interface
  */
 public interface UF extends Connections {
+
     /**
      * Returns the number of components.
      *
@@ -51,4 +54,28 @@ public interface UF extends Connections {
      * @return the number of sites.
      */
     int size();
+
+    public static int count(int n) {
+        UF uf = new UF_HWQUPC(n);
+        int connections = 0;
+        Random random = new Random();
+        while (uf.components() > 1) {
+            int p = random.nextInt(n);
+            int q = random.nextInt(n);
+            if (!uf.isConnected(p, q)) {
+                uf.union(p, q);
+                connections++;
+            }
+        }
+        return connections;
+    }
+
+    public static void main(String[] args) {
+        int n = 20;
+        if (args.length > 0) {
+            n = Integer.parseInt(args[0]);
+        }
+        int connections = count(n);
+        System.out.println("Number of connections: " + connections);
+    }
 }
