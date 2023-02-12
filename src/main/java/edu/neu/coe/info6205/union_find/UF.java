@@ -7,6 +7,8 @@ import java.util.Random;
  */
 public interface UF extends Connections {
 
+
+
     /**
      * Returns the number of components.
      *
@@ -54,28 +56,27 @@ public interface UF extends Connections {
      * @return the number of sites.
      */
     int size();
-
     public static int count(int n) {
-        UF uf = new UF_HWQUPC(n);
-        int connections = 0;
+        UF_HWQUPC uf = new UF_HWQUPC(n);
         Random random = new Random();
-        while (uf.components() > 1) {
+        int connections = 0;
+        while (uf.components() != 1) {
             int p = random.nextInt(n);
             int q = random.nextInt(n);
+            connections++;
             if (!uf.isConnected(p, q)) {
                 uf.union(p, q);
-                connections++;
+
             }
         }
         return connections;
     }
 
     public static void main(String[] args) {
-        int n = 20;
-        if (args.length > 0) {
-            n = Integer.parseInt(args[0]);
-        }
-        int connections = count(n);
+        int n = Integer.parseInt(args[0]);
+        int connections= count(n);
         System.out.println("Number of connections: " + connections);
     }
+
+
 }
