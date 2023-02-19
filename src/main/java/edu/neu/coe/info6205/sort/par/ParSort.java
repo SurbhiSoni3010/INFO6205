@@ -2,6 +2,7 @@ package edu.neu.coe.info6205.sort.par;
 
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ForkJoinPool;
 
 /**
  * This code has been fleshed out by Ziyao Qiao. Thanks very much.
@@ -10,15 +11,21 @@ import java.util.concurrent.CompletableFuture;
 class ParSort {
 
     public static int cutoff = 1000;
+    public static int  threadCount = 3;
+    public static ForkJoinPool threadPool = new ForkJoinPool(threadCount);
+
+
 
     public static void sort(int[] array, int from, int to) {
-        if (to - from < cutoff) Arrays.sort(array, from, to);
+        System.out.println(to - from + " " + cutoff);
+        if (to - from < cutoff ) Arrays.sort(array, from, to); //[5,4,9,3,5,28,30]
         else {
             // FIXME next few lines should be removed from public repo.
+
             CompletableFuture<int[]> parsort1 = parsort(array, from, from + (to - from) / 2); // TO IMPLEMENT
             CompletableFuture<int[]> parsort2 = parsort(array, from + (to - from) / 2, to); // TO IMPLEMENT
             CompletableFuture<int[]> parsort = parsort1.thenCombine(parsort2, (xs1, xs2) -> {
-                int[] result = new int[xs1.length + xs2.length];
+                int[] result = new int[xs1.length + xs2.length]; //[3,4,5,9] [5,28,30]
                 // TO IMPLEMENT
                 int i = 0;
                 int j = 0;
@@ -50,7 +57,7 @@ class ParSort {
                     System.arraycopy(array, from, result, 0, result.length);
                     sort(result, 0, to - from);
                     return result;
-                }
+                },threadPool
         );
     }
 }
