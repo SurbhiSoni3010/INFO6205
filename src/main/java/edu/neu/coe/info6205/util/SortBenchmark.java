@@ -3,13 +3,8 @@
  */
 package edu.neu.coe.info6205.util;
 
-import edu.neu.coe.info6205.sort.BaseHelper;
-import edu.neu.coe.info6205.sort.Helper;
-import edu.neu.coe.info6205.sort.SortWithHelper;
-import edu.neu.coe.info6205.sort.elementary.BubbleSort;
-import edu.neu.coe.info6205.sort.elementary.InsertionSort;
-import edu.neu.coe.info6205.sort.elementary.RandomSort;
-import edu.neu.coe.info6205.sort.elementary.ShellSort;
+import edu.neu.coe.info6205.sort.*;
+import edu.neu.coe.info6205.sort.elementary.*;
 import edu.neu.coe.info6205.sort.linearithmic.TimSort;
 import edu.neu.coe.info6205.sort.linearithmic.*;
 
@@ -43,6 +38,76 @@ public class SortBenchmark {
         benchmark.sortIntegersByShellSort(config.getInt("shellsort", "n", 100000));
         benchmark.sortStrings(Arrays.stream(args).map(Integer::parseInt));
         benchmark.sortLocalDateTimes(config.getInt("benchmarkdatesorters", "n", 100000), config);
+
+        int N = 25000;
+        InstrumentedHelper<Integer> helper = new InstrumentedHelper<>("MergeSort", Config.setupConfig("true", "0", "0", "", ""));
+        InstrumentedHelper<Integer> helper1 = new InstrumentedHelper<>("QuickSort_DualPivot", Config.setupConfig("true", "0", "0", "", ""));
+        InstrumentedHelper<Integer> helper2 = new InstrumentedHelper<>("HeapSort", Config.setupConfig("true", "0", "0", "", ""));
+
+        MergeSort<Integer> s = new MergeSort<>(helper);
+        s.init(N);
+        QuickSort_DualPivot<Integer> s1 = new QuickSort_DualPivot<>(helper1);
+        s1.init(N);
+        HeapSort<Integer> s2 = new HeapSort<>(helper2);
+        s2.init(N);
+
+        Integer[] xs = helper.random(Integer.class, r -> r.nextInt(100000));
+        Integer[] xs1 = helper1.random(Integer.class, r -> r.nextInt(400000));
+        Integer[] xs2 = helper2.random(Integer.class, r -> r.nextInt(100000));
+
+        Partitioner<Integer> partitioner = s1.createPartitioner();
+        List<Partition<Integer>> partitions = partitioner.partition(new Partition<>(xs1, 0, xs1.length));
+        Partition<Integer> p0 = partitions.get(0);
+        Partition<Integer> p1 = partitions.get(1);
+        Partition<Integer> p2 = partitions.get(2);
+
+        Benchmark<Boolean> bm = new Benchmark_Timer<>("random array sort", b -> s.sort(xs, 0, N));
+        double x = bm.run(true, 20);
+
+        Benchmark<Boolean> bm0 = new Benchmark_Timer<>("random array sort", b -> s1.sort(xs1, 0, p0.to, 0));
+        double x0 = bm0.run(true, 20);
+        Benchmark<Boolean> bm1 = new Benchmark_Timer<>("random array sort", b -> s1.sort(xs1, p1.from, p1.to, 0));
+        double x1 = bm1.run(true, 20);
+        Benchmark<Boolean> bm2 = new Benchmark_Timer<>("random array sort", b -> s1.sort(xs1, p2.from, N, 0));
+        double x2 = bm2.run(true, 20);
+
+        Benchmark<Boolean> bm3 = new Benchmark_Timer<>("random array sort", b -> s2.sort(xs2, 0, N));
+        double x3 = bm3.run(true, 20);
+        s2.sort(xs2, 0, N);
+
+        long compares = helper.getCompares();
+        long swaps = helper.getSwaps();
+        long hits = helper.getHits();
+        long fixes = helper.getFixes();
+        System.out.println(compares + " compares of Merge Sort" );
+        System.out.println(swaps + " swap of Merge Sort");
+        System.out.println(hits + " hits of Merge Sort");
+        System.out.println(fixes + " fixes of Merge Sort");
+        System.out.println(x + " ms of Merge Sort");
+
+        long compares1 = helper1.getCompares();
+        long swaps1 = helper1.getSwaps();
+        long hits1 = ((InstrumentedHelper<Integer>) helper1).getHits();
+        long fixes1 = helper1.getFixes();
+        double time1 = (x0 + x1 + x2);
+        System.out.println(compares1 + " compares of QuickSort_DualPivot");
+        System.out.println(swaps1 + " swap of QuickSort_DualPivot");
+        System.out.println(hits1 + " hits of QuickSort_DualPivot");
+        System.out.println(fixes1 + " fixes of QuickSort_DualPivot");
+        System.out.println(time1 + " ms of QuickSort_DualPivot");
+
+        long compares2 = helper2.getCompares();
+        long swaps2 = helper2.getSwaps();
+        long hits2 = helper2.getHits();
+        long fixes2 = helper2.getFixes();
+
+        System.out.println(compares2 + " compares of Heap Sort");
+        System.out.println(swaps2 + " swap of Heap Sort");
+        System.out.println(hits2 + " hits of Heap Sort");
+        System.out.println(fixes2 + " fixes of Heap Sort");
+        System.out.println(x3 + " ms of Heap Sort");
+
+
     }
 
     public void sortLocalDateTimes(final int n, Config config) throws IOException {
@@ -103,6 +168,11 @@ public class SortBenchmark {
         if (isConfigBenchmarkStringSorter("introsort"))
             runStringSortBenchmark(words, nWords, nRuns, new IntroSort<>(nWords, config), timeLoggersLinearithmic);
 
+        if (isConfigBenchmarkStringSorter("heapsort")) {
+            Helper<String> helper = HelperFactory.create("Heapsort", nWords, config);
+            runStringSortBenchmark(words, nWords, nRuns, new HeapSort<>(helper), timeLoggersLinearithmic);
+        }
+
         if (isConfigBenchmarkStringSorter("randomsort"))
             runStringSortBenchmark(words, nWords, nRuns, new RandomSort<>(nWords, config), timeLoggersLinearithmic);
 
@@ -113,6 +183,7 @@ public class SortBenchmark {
         // NOTE: this is very slow of course, so recommendation is not to enable this option.
         if (isConfigBenchmarkStringSorter("bubblesort"))
             runStringSortBenchmark(words, nWords, nRuns / 10, new BubbleSort<>(nWords, config), timeLoggersQuadratic);
+
 
     }
 
@@ -150,6 +221,11 @@ public class SortBenchmark {
 
         if (isConfigBenchmarkStringSorter("quicksort"))
             runStringSortBenchmark(words, nWords, nRuns, new QuickSort_Basic<>(nWords, config), timeLoggersLinearithmic);
+
+        if (isConfigBenchmarkStringSorter("heapsort")) {
+            Helper<String> helper = HelperFactory.create("Heapsort", nWords, config);
+            runStringSortBenchmark(words, nWords, nRuns, new HeapSort<>(helper), timeLoggersLinearithmic);
+        }
 
         if (isConfigBenchmarkStringSorter("introsort"))
             runStringSortBenchmark(words, nWords, nRuns, new IntroSort<>(nWords, config), timeLoggersLinearithmic);

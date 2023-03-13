@@ -1,12 +1,21 @@
 package edu.neu.coe.info6205.sort.elementary;
 
 import edu.neu.coe.info6205.sort.Helper;
+import edu.neu.coe.info6205.sort.InstrumentedHelper;
 import edu.neu.coe.info6205.sort.SortWithHelper;
+import edu.neu.coe.info6205.util.Benchmark;
+import edu.neu.coe.info6205.util.Benchmark_Timer;
+import edu.neu.coe.info6205.util.Config;
 
 public class HeapSort<X extends Comparable<X>> extends SortWithHelper<X> {
 
     public HeapSort(Helper<X> helper) {
         super(helper);
+    }
+
+    public HeapSort(String description, int N, Config config) {
+        super(description, N, config);
+
     }
 
     @Override
@@ -41,4 +50,24 @@ public class HeapSort<X extends Comparable<X>> extends SortWithHelper<X> {
             maxHeap(array, heapSize, largest);
         }
     }
+    public static void main(String[] args) {
+        int N = 160000;
+        InstrumentedHelper<Integer> helper = new InstrumentedHelper<>("HeapSort", Config.setupConfig("false", "0", "0", "", ""));
+        HeapSort<Integer> s = new HeapSort<>(helper);
+        s.init(N);
+        Integer[] xs = helper.random(Integer.class, r -> r.nextInt(100000));
+        Benchmark<Boolean> bm = new Benchmark_Timer<>("random array sort", b -> s.sort(xs, 0, N));
+        double x = bm.run(true, 20);
+        s.sort(xs, 0, N);
+
+        long compares = helper.getCompares();
+        long swaps = helper.getSwaps();
+        long hits = helper.getHits();
+        System.out.println(compares + " compares");
+        System.out.println(swaps + " swap");
+        System.out.println(hits + " hits");
+        System.out.println(x + " ms");
+
+    }
+
 }

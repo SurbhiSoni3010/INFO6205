@@ -1,11 +1,23 @@
 package edu.neu.coe.info6205.util;
 
+import edu.neu.coe.info6205.sort.Helper;
+import edu.neu.coe.info6205.sort.HelperFactory;
+import edu.neu.coe.info6205.sort.Sort;
 import edu.neu.coe.info6205.sort.SortWithHelper;
+import edu.neu.coe.info6205.sort.elementary.HeapSort;
+import edu.neu.coe.info6205.sort.linearithmic.MergeSort;
+import edu.neu.coe.info6205.sort.linearithmic.QuickSort;
+import edu.neu.coe.info6205.sort.linearithmic.QuickSort_DualPivot;
+import edu.neu.coe.info6205.threesum.ThreeSumBenchmark;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Random;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 import static edu.neu.coe.info6205.util.Utilities.formatWhole;
+
 
 /**
  * Class to extend Benchmark_Timer for sorting an array of T values.
@@ -94,5 +106,66 @@ public class SorterBenchmark<T extends Comparable<T>> extends Benchmark_Timer<T[
     protected final TimeLogger[] timeLoggers;
     private final static LazyLogger logger = new LazyLogger(SorterBenchmark.class);
     private final Class<T> tClass;
+    public static void main(String[] args) {
+        int runs = 20;
+
+        for (int N = 10000; N <= 80000; N *= 2) {
+            Random random = new Random();
+            Integer[] array = new Integer[N];
+            for (int i = 0; i < N; i++) {
+                array[i] = random.nextInt(1000);
+            }
+
+            Config config = null;
+            try {
+                config = Config.load(SorterBenchmark.class);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            Sort<Integer> mergeSort = new MergeSort<>(N, config);
+            Sort<Integer> quickSort = new QuickSort_DualPivot<>(N, config);
+
+//            Sort<Integer> heapSort = new HeapSort<>(Helper<X> helper);
+
+
+            Integer[] arrayCopy1 = Arrays.copyOf(array, N);
+            long mergeSortTime = 0;
+            long startTime;
+            long endTime;
+            for (int i = 0; i < runs; i++) {
+                startTime = System.nanoTime();
+                mergeSort.sort(arrayCopy1);
+                endTime = System.nanoTime();
+                mergeSortTime += endTime - startTime;
+            }
+            System.out.println("MergeSort (" + N + " elements): " + (mergeSortTime / runs / 1_000_000) + " milliseconds");
+
+            Integer[] arrayCopy2 = Arrays.copyOf(array, N);
+            long quickSortTime = 0;
+            for (int i = 0; i < runs; i++) {
+                startTime = System.nanoTime();
+                quickSort.sort(arrayCopy2);
+                endTime = System.nanoTime();
+                quickSortTime += endTime - startTime;
+            }
+            System.out.println("QuickSort_DualPivot (" + N + " elements): " + (quickSortTime / runs / 1_000_000) + " milliseconds");
+
+            Integer[] arrayCopy3 = Arrays.copyOf(array, N);
+            long heapSortTime = 0;
+            for (int i = 0; i < runs; i++) {
+                startTime = System.nanoTime();
+//                heapSort.sort(arrayCopy3);
+                endTime = System.nanoTime();
+                heapSortTime += endTime - startTime;
+            }
+            System.out.println("HeapSort (" + N + " elements): " + (heapSortTime / runs / 1_000_000) + " milliseconds");
+
+            System.out.println("Arrays are sorted: " + Arrays.equals(arrayCopy1, arrayCopy2) + ", " + Arrays.equals(arrayCopy1, arrayCopy3));
+        }
+    }
+
+
+
+
 
 }

@@ -1,8 +1,11 @@
 package edu.neu.coe.info6205.sort.linearithmic;
 
 import edu.neu.coe.info6205.sort.Helper;
+import edu.neu.coe.info6205.sort.InstrumentedHelper;
 import edu.neu.coe.info6205.sort.SortWithHelper;
 import edu.neu.coe.info6205.sort.elementary.InsertionSort;
+import edu.neu.coe.info6205.util.Benchmark;
+import edu.neu.coe.info6205.util.Benchmark_Timer;
 import edu.neu.coe.info6205.util.Config;
 
 import java.util.Arrays;
@@ -65,6 +68,22 @@ public class MergeSort<X extends Comparable<X>> extends SortWithHelper<X> {
         }
 
         // FIXME : implement merge sort with insurance and no-copy optimizations
+        int mid = (from + to) / 2;
+        sort(a, from, mid);
+        sort(a, mid, to);
+
+        if (insurance) {
+            if (helper.less(a[mid-1], a[mid])) {
+                return;
+            }
+        }
+
+        if (noCopy) {
+            mergeWithoutCopy(a, from, mid, to);
+        } else {
+            aux = Arrays.copyOf(a, a.length);
+            merge(aux, a, from, mid, to);
+        }
         // END 
     }
 
@@ -81,6 +100,23 @@ public class MergeSort<X extends Comparable<X>> extends SortWithHelper<X> {
                 helper.copy(sorted, j++, result, k);
             } else helper.copy(sorted, i++, result, k);
     }
+    private void mergeWithoutCopy(X[] a, int from, int mid, int to) {
+        final Helper<X> helper = getHelper();
+        int i = from;
+        int j = mid;
+        while (i < mid && j < to) {
+            if (helper.less(a[j], a[i])) {
+                X temp = a[j];
+                System.arraycopy(a, i, a, i+1, j-i);
+                a[i] = temp;
+                i++;
+                j++;
+                mid++;
+            } else {
+                i++;
+            }
+        }
+    }
 
     public static final String MERGESORT = "mergesort";
     public static final String NOCOPY = "nocopy";
@@ -94,5 +130,26 @@ public class MergeSort<X extends Comparable<X>> extends SortWithHelper<X> {
     }
 
     private final InsertionSort<X> insertionSort;
+
+    public static void main (String[] args) {
+        int N = 160000;
+        InstrumentedHelper<Integer> helper = new InstrumentedHelper<>("MergeSort", Config.setupConfig("false", "0", "0", "", ""));
+        MergeSort<Integer> s = new MergeSort<>(helper);
+        s.init(N);
+        Integer[] xs = helper.random(Integer.class, r -> r.nextInt(100000));
+        Benchmark<Boolean> bm = new Benchmark_Timer<>("random array sort", b -> s.sort(xs, 0, N));
+        double x = bm.run(true, 20);
+
+        long compares = helper.getCompares();
+        long swaps = helper.getSwaps();
+        long hits = helper.getHits();
+        long fixes = helper.getFixes();
+        System.out.println(compares + " compares");
+        System.out.println(swaps + " swap");
+        System.out.println(hits + " hits");
+        System.out.println(fixes + " fixes");
+        System.out.println(x + " ms");
+
+    }
 }
 
